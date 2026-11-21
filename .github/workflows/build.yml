@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Unpack project ZIP
         run: |
           if [ ! -f settings.gradle.kts ]; then
@@ -17,13 +17,17 @@ jobs:
             ROOT=$(dirname "$(find unpacked -name settings.gradle.kts | head -n 1)")
             cp -a "$ROOT"/. .
           fi
-      - uses: actions/setup-java@v4
+          ls -la
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
-      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Prepare Android SDK
+        run: |
+          echo "SDK at $ANDROID_HOME"
+          SDKM=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | head -n 1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-35" "build-tools;35.0.0"
       - name: Build APK
         run: |
           chmod +x gradlew
